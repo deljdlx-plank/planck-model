@@ -18,24 +18,8 @@ class Entity extends \Planck\Model\Entity
 
     public function __construct(\Planck\Model\Entity $entity)
     {
-        $this->bindWithEntity($entity);
+        //$this->bindWithEntity($entity);
         $this->decorate($entity);
     }
 }
-
-
-
-/*
-class Entity extends Decorator
-{
-
-
-    public function __construct(\Planck\Model\Entity $entity)
-    {
-
-        parent::__construct($entity);
-    }
-}
-*/
-
 
