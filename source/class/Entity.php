@@ -8,6 +8,7 @@ use Phi\Traits\Introspectable;
 use Planck\Model\Exception\DoesNotExist;
 use Planck\Model\Interfaces\Timestampable as iTimestampable;
 use Planck\Model\Traits\Timestampable;
+use Planck\Traits\Decorable;
 use Planck\Traits\IsApplicationObject;
 
 
@@ -17,6 +18,8 @@ class Entity extends \Phi\Model\Entity implements iTimestampable
     use Timestampable;
     use Introspectable;
     use IsApplicationObject;
+
+    use Decorable;
 
 
     protected $primaryKeyName = 'id';
@@ -50,12 +53,6 @@ class Entity extends \Phi\Model\Entity implements iTimestampable
 
         foreach ($traits as $trait) {
             $methodName = '_initializeTrait'.$this->getClassBaseName($trait);
-            /*
-            echo '<pre id="' . __FILE__ . '-' . __LINE__ . '" style="border: solid 1px rgb(255,0,0); background-color:rgb(255,255,255)">';
-            echo '<div style="background-color:rgba(100,100,100,1); color: rgba(255,255,255,1)">' . __FILE__ . '@' . __LINE__ . '</div>';
-            print_r(get_class($this).'-'.$methodName);
-            echo '</pre>';
-            */
 
             if(method_exists($this, $methodName)) {
                 $this->$methodName();

@@ -3,7 +3,7 @@
 namespace Planck\Model;
 
 
-use Phi\Database\Source;
+
 use Phi\Model\Entity;
 use Planck\Application;
 use Planck\Model\Exception\DoesNotExist;
@@ -36,9 +36,13 @@ class Repository extends \Phi\Model\Repository
 
 
 
-    public function __construct(Source $database)
+    public function __construct(Model $model)
     {
-        parent::__construct($database);
+        $this->model = $model;
+
+        $source = $this->model->getSource();
+
+        parent::__construct($source);
     }
 
     public function now()
@@ -406,10 +410,16 @@ class Repository extends \Phi\Model\Repository
      */
     public function getByQName($qName)
     {
-
         $records = $this->getBy('qname', $qName);
-
         return $records->first();
+    }
+
+
+    public function getEntityInstance($cast = null)
+    {
+        $instance = parent::getEntityInstance($cast);
+        $instance = $this->model->decorateEntity($instance);
+        return $instance;
     }
 
 

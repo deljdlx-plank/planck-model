@@ -2,8 +2,8 @@
 namespace Planck\Model;
 
 use Phi\Database\Source;
-use Planck\Application;
 use Planck\Exception;
+use Planck\Exception\ClassDoesNotExist;
 
 class Model
 {
@@ -15,10 +15,32 @@ class Model
      */
     protected $sources = [];
 
+
+    protected $entityDecorators = [];
+
+
     public function __construct()
     {
 
     }
+
+    public function addEntityDecorator($entityClassName, $decoratorClassName)
+    {
+        if(!class_exists($entityClassName)) {
+            throw new ClassDoesNotExist($entityClassName);
+        }
+        if(!class_exists($decoratorClassName)) {
+            throw new ClassDoesNotExist($decoratorClassName);
+        }
+        if(!array_key_exists($entityClassName, $this->entityDecorators)) {
+            $this->entityDecorators[$entityClassName] = [];
+        }
+
+        $this->entityDecorators[$entityClassName][$decoratorClassName] = $decoratorClassName;
+        return $this;
+    }
+
+
 
 
     public function addSource(Source $source, $name = null)
@@ -53,12 +75,16 @@ class Model
     public function getEntity($entityName, $sourceName = null)
     {
 
-        $source = $this->getSource($sourceName);
 
         if(class_exists($entityName)) {
             $repositoryClassName = str_replace('\Entity\\', '\Repository\\', $entityName);
-            $repository = new $repositoryClassName($source);
+            $repository = new $repositoryClassName($this);
             $instance = new $entityName($repository);
+
+            $instance = $this->decorateEntity($instance);
+
+
+
         }
         else {
             throw new Exception('Model entity '.$entityName.' does not exists');
@@ -68,20 +94,41 @@ class Model
     }
 
 
+    /**
+     * @param Entity $instance
+     * @return Entity|\Planck\Pattern\Decorator
+     */
+    public function decorateEntity(Entity $instance)
+    {
+        $entityName = get_class($instance);
+
+        if(array_key_exists($entityName, $this->entityDecorators)) {
+            foreach ($this->entityDecorators[$entityName] as $decoratorClassName) {
+                $instance= $instance->decorate($decoratorClassName);
+            }
+        }
+        return $instance;
+
+
+    }
+
+
+    /**
+     * @param $repositoryName
+     * @param null $sourceName
+     * @return Repository
+     * @throws Exception
+     */
     public function getRepository($repositoryName, $sourceName = null)
     {
 
-        $source = $this->getSource($sourceName);
-
         if(class_exists($repositoryName)) {
-            $repository = new $repositoryName($source);
+            $repository = new $repositoryName($this);
             return $repository;
         }
         else {
             throw new Exception('Model repository '.$repositoryName.' does not exists');
         }
-
-        return $instance;
     }
 
 
