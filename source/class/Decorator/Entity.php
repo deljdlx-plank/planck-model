@@ -4,18 +4,38 @@
 
 namespace Planck\Model\Decorator;
 
-use Planck\Pattern\Decorator;
 
+
+use Planck\Pattern\Traits\Decorator;
+
+
+class Entity extends \Planck\Model\Entity
+{
+
+    use Decorator;
+
+
+
+    public function __construct(\Planck\Model\Entity $entity)
+    {
+        $this->bindWithEntity($entity);
+        $this->decorate($entity);
+    }
+}
+
+
+
+/*
 class Entity extends Decorator
 {
 
 
-    public function __construct(\Planck\Model\Entity $object)
+    public function __construct(\Planck\Model\Entity $entity)
     {
-        parent::__construct($object);
+
+        parent::__construct($entity);
     }
-
-
 }
+*/
 
 
