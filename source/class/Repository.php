@@ -5,7 +5,7 @@ namespace Planck\Model;
 
 
 use Phi\Model\Entity;
-use Planck\Application;
+use Planck\Application\Application;
 use Planck\Model\Exception\DoesNotExist;
 use Planck\Model\Exception\NotUnique;
 use Planck\Model\Interfaces\Timestampable;
