@@ -6,7 +6,8 @@ class EntityLoader
 {
 
 
-    const LOAD_BY_ATTRIBUTE = 'by-attribute';
+    const LOAD_BY_ATTRIBUTE = 'load_by-attribute';
+    const LOAD_BY_ID = 'load_by-id';
 
     protected $model;
 
