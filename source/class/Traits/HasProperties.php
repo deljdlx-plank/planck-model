@@ -170,11 +170,14 @@ Trait HasProperties
         }
     }
 
-    public function getValues()
+    public function getValues(array $selectedFields = null)
     {
-        $values = parent::getValues();
+        $values = parent::getValues($selectedFields);
 
-        $values['properties'] = json_encode($this->properties);
+        if(empty($selectedFields) || in_array('properties', $selectedFields)){
+            $values['properties'] = json_encode($this->properties);
+        }
+
         return $values;
 
         //$this->setValue('properties', json_encode($this->properties));

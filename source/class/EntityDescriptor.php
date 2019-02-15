@@ -19,6 +19,7 @@ class EntityDescriptor
      */
     protected $fields;
 
+
     public function __construct(Repository $repository, array $descriptor = null)
     {
 
@@ -37,7 +38,33 @@ class EntityDescriptor
             $fieldName = $fieldDescriptor['name'];
             $this->fields[$fieldName] = $descriptor;
         }
+    }
 
+
+
+
+    public function getLabelFieldName()
+    {
+        $possibleKeys = [
+            'label',
+            'caption',
+            'title',
+            'name',
+            'qname',
+            'id',
+        ];
+
+        foreach ($possibleKeys as $key) {
+
+            if(array_key_exists($key, $this->fields)) {
+                return $key;
+            }
+        }
+    }
+
+    public function getIdFieldName()
+    {
+        return $this->repository->getEntityInstance()->getPrimaryKeyFieldName();
     }
 
 

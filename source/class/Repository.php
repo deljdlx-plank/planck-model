@@ -118,7 +118,7 @@ class Repository extends \Phi\Model\Repository
             return new $descriptor($this);
         }
         else {
-            return new Descriptor($this);
+            return new EntityDescriptor($this);
         }
     }
 
@@ -154,6 +154,54 @@ class Repository extends \Phi\Model\Repository
         }
 
         return implode(",\n", $fields);
+    }
+
+
+    public function getList(array $fields = null, $offset = null, $limit = null, &$totalRows = null)
+    {
+
+        if(!empty($fields)) {
+
+            foreach ($fields as &$value) {
+                $value = $this->escapeField($value);
+            }
+            $fieldList = implode(',', $fields);
+        }
+        else {
+            $fieldList = '*';
+        }
+
+        $query = "
+            SELECT ".$fieldList." FROM ".$this->getTableName()."
+        ";
+
+
+        $parameters = [];
+
+        if($limit !== null || $offset !== null) {
+            $query.=" LIMIT :limit ";
+            if($limit !== null) {
+                $parameters[':limit'] = (int) $limit;
+            }
+            else {
+                $parameters[':limit'] = -1;
+            }
+
+        }
+
+        if($offset !== null) {
+            $query .= " OFFSET :offset ";
+            $parameters[':offset'] = (int) $offset;
+        }
+        $dataset = $this->queryAndGetDataset($query, $parameters);
+
+
+        $query = "
+            SELECT COUNT(*) FROM ".$this->getTableName()." as total
+        ";
+        $totalRows = (int) $this->queryAndFetchValue($query, array(), 'total');
+
+        return $dataset->getAll();
     }
 
 
