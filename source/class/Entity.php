@@ -12,7 +12,7 @@ use Planck\Traits\Decorable;
 use Planck\Traits\IsApplicationObject;
 
 
-class Entity extends \Phi\Model\Entity implements iTimestampable
+abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 {
 
     use Timestampable;
@@ -31,6 +31,9 @@ class Entity extends \Phi\Model\Entity implements iTimestampable
     protected $ownedEntities = [];
 
 
+    protected $foreignKeys = [];
+
+
     public function __construct($repository = null)
     {
         parent::__construct($repository);
@@ -44,6 +47,28 @@ class Entity extends \Phi\Model\Entity implements iTimestampable
         }
         $this->initializeTraits($this);
 
+    }
+
+
+    /**
+     * @return EntityDescriptor
+     */
+    public function getDescriptor()
+    {
+        $descriptorClassName = str_replace('\Entity\\', '\Descriptor\\', get_class($this));
+        if(class_exists($descriptorClassName)) {
+            return new $descriptorClassName($this->getRepository());
+        }
+        else {
+            return new EntityDescriptor($this->getRepository());
+        }
+    }
+
+
+
+    public function getForeignKeys()
+    {
+        return $this->foreignKeys;
     }
 
 
@@ -72,6 +97,7 @@ class Entity extends \Phi\Model\Entity implements iTimestampable
     {
         parent::setRepository($repository);
         $fields = $repository->getEntityFields();
+
         foreach ($fields as $field) {
             if(!isset($this->values[$field])) {
                 $this->values[$field] = null;

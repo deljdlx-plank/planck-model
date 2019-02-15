@@ -31,9 +31,7 @@ class Repository extends \Phi\Model\Repository
 
     private $transactionStarted = false;
 
-    protected $describeData;
-    protected static $staticDescribeData;
-
+    private $describeData;
 
 
     public function __construct(Model $model)
@@ -89,19 +87,27 @@ class Repository extends \Phi\Model\Repository
 
 
 
-    public function describe()
+    public function describe($toDescriptor = false)
     {
+
+
         if(!$this->describeData) {
-            if(!isset(static::$staticDescribeData[$this->getTableName()])) {
-                $query ='PRAGMA table_info('.$this->escape($this->getTableName()).');';
-                $rows = $this->queryAndFetch($query);
-                static::$staticDescribeData[$this->getTableName()] = $rows;
-            }
-            $this->describeData = static::$staticDescribeData[$this->getTableName()];
+            $query ='PRAGMA table_info('.$this->escape($this->getTableName()).');';
+            $rows = $this->queryAndFetch($query);
+            $this->describeData = $rows;
         }
 
 
-        return $this->describeData;
+        if($toDescriptor) {
+            $descriptor = new EntityDescriptor($this, $this->describeData);
+            return $descriptor;
+        }
+        else {
+            return $this->describeData;
+        }
+
+
+
     }
 
     public function getDescriptor()

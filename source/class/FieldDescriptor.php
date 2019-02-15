@@ -5,6 +5,11 @@ namespace Planck\Model;
 class FieldDescriptor
 {
 
+    const TYPE_TEXT = 'TEXT';
+    const TYPE_INT = 'INT';
+    const TYPE_INTEGER = 'INTEGER';
+    const TYPE_DATETIME = 'DATETIME';
+
 
     protected $defaultFieldDescriptor =array(
         'cid' => null,
@@ -14,49 +19,80 @@ class FieldDescriptor
         'dflt_value' => null,
         'pk' => null,
 
-        '@isCaption' => true,
+        '_isCaption' => true,
     );
+
+    /**
+     * @var array
+     */
+    protected $fieldDescriptor;
 
     public function __construct($fieldDescriptor)
     {
-
-        $fieldDescriptor = $this->decorate($fieldDescriptor);
         $this->fieldDescriptor = array_merge($this->defaultFieldDescriptor, $fieldDescriptor);
     }
+
+    public function getDescriptor()
+    {
+        return $this->fieldDescriptor;
+    }
+
+
+    public function isPrimaryKey()
+    {
+        if($this->fieldDescriptor['pk']) {
+            return true;
+        }
+        return false;
+    }
+
+    public function getDefaultValue()
+    {
+        return $this->fieldDescriptor['dflt_value'];
+    }
+
 
     public function getCaption()
     {
         return $this->fieldDescriptor['name'];
     }
 
+    public function getName()
+    {
+        return  $this->fieldDescriptor['name'];
+    }
+
+    public function getType()
+    {
+        return $this->fieldDescriptor['type'];
+    }
+
     public function isCaption($value = null)
     {
-        if($value!==null) {
-            $this->fieldDescriptor['@isCaption'] = $value;
+        if($value !== null) {
+            $this->fieldDescriptor['_isCaption'] = $value;
         }
-        return $this->fieldDescriptor['@isCaption'];
+        return $this->fieldDescriptor['_isCaption'];
     }
 
-
-    protected function decorate($fieldDescriptor)
+    public function isInt()
     {
+        if($this->getType() == self::TYPE_INT || $this->getType() == self::TYPE_INTEGER) {
 
-
-        if(!isset($fieldDescriptor['@isCaption'])) {
-            if($fieldDescriptor['type'] == 'TEXT') {
-                $fieldDescriptor['@isCaption'] = false;
-            }
-            else if($fieldDescriptor['type'] == 'INT') {
-                $fieldDescriptor['@isCaption'] = false;
-            }
-            else if($fieldDescriptor['type'] == 'DATETIME') {
-                $fieldDescriptor['@isCaption'] = false;
-            }
-
+            return true;
         }
-        return $fieldDescriptor;
+        return false;
     }
 
+
+    public function isDate()
+    {
+        if($this->getType() == self::TYPE_DATETIME) {
+
+            return true;
+        }
+        return false;
+    }
 
 
 

@@ -10,6 +10,14 @@ class Model
 
     const DEFAULT_SOURCE_NAME = 'main';
 
+
+    /**
+     * @var Repository[]
+     */
+    private static $repositories = [];
+
+
+
     /**
      * @var Source[]
      */
@@ -78,8 +86,21 @@ class Model
 
         if(class_exists($entityName)) {
             $repositoryClassName = str_replace('\Entity\\', '\Repository\\', $entityName);
-            $repository = new $repositoryClassName($this);
+            if(isset(static::$repositories[$repositoryClassName])) {
+                $repository = static::$repositories[$repositoryClassName];
+            }
+            else {
+                $repository = new $repositoryClassName($this);
+                static::$repositories[$repositoryClassName] = $repository;
+            }
+
+
+
             $instance = new $entityName($repository);
+
+
+
+
 
             $instance = $this->decorateEntity($instance);
 
@@ -119,11 +140,21 @@ class Model
      * @return Repository
      * @throws Exception
      */
-    public function getRepository($repositoryName, $sourceName = null)
+    public function getRepository($repositoryName, $sourceName = null, $newInstance = false)
     {
 
         if(class_exists($repositoryName)) {
-            $repository = new $repositoryName($this);
+
+            if(isset(static::$repositories[$repositoryName]) && !$newInstance) {
+                $repository = static::$repositories[$repositoryName];
+            }
+            else {
+                $repository = new $repositoryName($this);
+                static::$repositories[$repositoryName] = $repository;
+            }
+
+
+
             return $repository;
         }
         else {
