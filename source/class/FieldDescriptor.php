@@ -10,6 +10,12 @@ class FieldDescriptor
     const TYPE_INTEGER = 'INTEGER';
     const TYPE_DATETIME = 'DATETIME';
 
+    const LEVEL_SYSTEM =  1024;
+    const LEVEL_DEVELOPPER = 512;
+    const LEVEL_ADMINISTRATOR = 256;
+    const LEVEL_USER = 128;
+    const LEVEL_GUEST = 64;
+
 
     protected $defaultFieldDescriptor =array(
         'cid' => null,
@@ -21,6 +27,8 @@ class FieldDescriptor
 
         '_isCaption' => true,
     );
+
+    protected $accessLevel = self::LEVEL_GUEST;
 
     /**
      * @var array
@@ -35,6 +43,11 @@ class FieldDescriptor
     public function getDescriptor()
     {
         return $this->fieldDescriptor;
+    }
+
+    public function getAccessLevel()
+    {
+        return $this->accessLevel;
     }
 
 

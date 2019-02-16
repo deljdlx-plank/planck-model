@@ -40,6 +40,11 @@ class EntityDescriptor
         }
     }
 
+    public function getEntityLabel()
+    {
+        return get_class($this->repository->getEntityInstance());
+    }
+
 
 
 
