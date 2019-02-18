@@ -157,7 +157,45 @@ class Repository extends \Phi\Model\Repository
     }
 
 
-    public function getList(array $fields = null, $offset = null, $limit = null, &$totalRows = null)
+
+
+    public function getSegmentByQuery($query, array $parameters = array(), $offset = null, $limit = null, &$totalRows = null)
+    {
+
+
+        $limitedQuery = $query;
+        $limitedQueryParameters = $parameters;
+
+
+        if($limit !== null || $offset !== null) {
+            $limitedQuery.=" LIMIT :limit ";
+            if($limit !== null) {
+                $limitedQueryParameters[':limit'] = (int) $limit;
+            }
+            else {
+                $limitedQueryParameters[':limit'] = -1;
+            }
+
+        }
+
+        if($offset !== null) {
+            $limitedQuery .= " OFFSET :offset ";
+            $limitedQueryParameters[':offset'] = (int) $offset;
+        }
+        $dataset = $this->queryAndGetDataset($limitedQuery, $limitedQueryParameters);
+
+
+        $countQuery = "
+            SELECT COUNT(*) as total FROM (".$query.") countTable 
+        ";
+
+
+        $totalRows = (int) $this->queryAndFetchValue($countQuery, $parameters, 'total');
+        return $dataset->getAll();
+    }
+
+
+    public function getSegment(array $fields = null, $offset = null, $limit = null, &$totalRows = null)
     {
 
         if(!empty($fields)) {
@@ -175,34 +213,9 @@ class Repository extends \Phi\Model\Repository
             SELECT ".$fieldList." FROM ".$this->getTableName()."
         ";
 
-
-        $parameters = [];
-
-        if($limit !== null || $offset !== null) {
-            $query.=" LIMIT :limit ";
-            if($limit !== null) {
-                $parameters[':limit'] = (int) $limit;
-            }
-            else {
-                $parameters[':limit'] = -1;
-            }
-
-        }
-
-        if($offset !== null) {
-            $query .= " OFFSET :offset ";
-            $parameters[':offset'] = (int) $offset;
-        }
-        $dataset = $this->queryAndGetDataset($query, $parameters);
-
-
-        $query = "
-            SELECT COUNT(*) FROM ".$this->getTableName()." as total
-        ";
-        $totalRows = (int) $this->queryAndFetchValue($query, array(), 'total');
-
-        return $dataset->getAll();
+        return $this->getEntitiesByQuery($query, array(), $offset, $limit, $totalRows);
     }
+
 
 
 
