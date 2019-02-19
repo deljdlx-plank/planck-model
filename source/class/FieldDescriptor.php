@@ -2,7 +2,7 @@
 
 namespace Planck\Model;
 
-class FieldDescriptor
+class FieldDescriptor implements \JsonSerializable
 {
 
     const TYPE_TEXT = 'TEXT';
@@ -25,7 +25,7 @@ class FieldDescriptor
         'dflt_value' => null,
         'pk' => null,
 
-        '_isCaption' => true,
+        '_isLabel' => false,
     );
 
     protected $accessLevel = self::LEVEL_GUEST;
@@ -65,7 +65,7 @@ class FieldDescriptor
     }
 
 
-    public function getCaption()
+    public function getLabel()
     {
         return $this->fieldDescriptor['name'];
     }
@@ -80,12 +80,12 @@ class FieldDescriptor
         return $this->fieldDescriptor['type'];
     }
 
-    public function isCaption($value = null)
+    public function isLabel($value = null)
     {
         if($value !== null) {
-            $this->fieldDescriptor['_isCaption'] = $value;
+            $this->fieldDescriptor['_isLabel'] = $value;
         }
-        return $this->fieldDescriptor['_isCaption'];
+        return $this->fieldDescriptor['_isLabel'];
     }
 
     public function isInt()
@@ -105,6 +105,25 @@ class FieldDescriptor
             return true;
         }
         return false;
+    }
+
+
+    public function jsonSerialize()
+    {
+        $data = [
+            'name' => $this->getName(),
+            'role' => '',
+        ];
+
+        if($this->isLabel()) {
+            $data['role'] = 'label';
+        }
+        else if($this->isPrimaryKey()) {
+            $data['role'] = 'primaryKey';
+        }
+
+
+        return $data;
     }
 
 

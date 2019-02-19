@@ -3,6 +3,8 @@
 namespace Planck\Model;
 
 
+use Planck\Exception\DoesNotExist;
+
 class EntityDescriptor
 {
 
@@ -46,17 +48,39 @@ class EntityDescriptor
     }
 
 
+    /**
+     * @param $fieldName
+     * @return FieldDescriptor
+     * @throws DoesNotExist
+     */
+    public function getFieldByName($fieldName)
+    {
+        if(array_key_exists($fieldName, $this->fields)) {
+            return $this->fields[$fieldName];
+        }
+        else {
+            throw new DoesNotExist('No field with name "'.$fieldName.'" for '.get_class($this));
+        }
+    }
+
 
 
     public function getLabelFieldName()
     {
+
+        foreach ($this->getFields() as $field) {
+            if($field->isCaption()) {
+                return $field->getName();
+            }
+        }
+
+
         $possibleKeys = [
             'label',
             'caption',
             'title',
             'name',
-            'qname',
-            'id',
+            'qname'
         ];
 
         foreach ($possibleKeys as $key) {
@@ -65,7 +89,32 @@ class EntityDescriptor
                 return $key;
             }
         }
+
+        return false;
+
     }
+
+
+    public function getPrimaryKeyField()
+    {
+        foreach ($this->getFields() as $field) {
+            if($field->isPrimaryKey()) {
+                return $field;
+            }
+        }
+    }
+
+    public function getLabelField()
+    {
+        foreach ($this->getFields() as $field) {
+            if($field->isLabel()) {
+                return $field;
+            }
+        }
+    }
+
+
+
 
     public function getIdFieldName()
     {

@@ -33,6 +33,12 @@ class Repository extends \Phi\Model\Repository
 
     private $describeData;
 
+    /**
+     * @var EntityDescriptor;
+     */
+    protected $descriptor;
+
+
 
     public function __construct(Model $model)
     {
@@ -110,16 +116,23 @@ class Repository extends \Phi\Model\Repository
 
     }
 
+    /**
+     * @return EntityDescriptor
+     */
     public function getDescriptor()
     {
-        $descriptor = str_replace('\Repository\\', '\Descriptor\\', get_class($this));
+        if(!$this->descriptor) {
+            $descriptor = str_replace('\Repository\\', '\Descriptor\\', get_class($this));
 
-        if(class_exists($descriptor)) {
-            return new $descriptor($this);
+            if(class_exists($descriptor)) {
+                $this->descriptor = new $descriptor($this);
+            }
+            else {
+                $this->descriptor = new EntityDescriptor($this);
+            }
         }
-        else {
-            return new EntityDescriptor($this);
-        }
+        return $this->descriptor;
+
     }
 
 
@@ -157,9 +170,75 @@ class Repository extends \Phi\Model\Repository
     }
 
 
+    /**
+     * @param $search
+     * @param array|null $fields
+     * @param null $offset
+     * @param null $limit
+     * @param null $totalRows
+     * @return \Planck\Model\Entity[]
+     */
+    public function search($search, array &$fields = null, $offset = null, $limit = null, Segment &$segment = null)
+    {
+
+        if($fields === null) {
+            $fields = [];
+
+            $idField = $this->getDescriptor(true)->getIdFieldName();
 
 
-    public function getSegmentByQuery($query, array $parameters = array(), $offset = null, $limit = null, &$totalRows = null)
+            if($idField) {
+                $fields [] = $idField;
+            }
+
+            $labelField = $this->getDescriptor(true)->getLabelFieldName();
+            if($labelField) {
+                $fields [] = $labelField;
+            }
+        }
+
+
+        foreach ($fields as $field) {
+            $conditions[] = $field.' LIKE :search';
+        }
+
+
+        $parameters = ['%'.$search.'%'];
+
+
+        $query =
+            "
+                SELECT ".implode(',', $fields)." FROM ".$this->getTableName()."
+                WHERE 
+                    ".implode(' OR ', $conditions)."
+            ";
+
+
+        if(!$segment) {
+            $segment = new Segment(
+                $this,
+                $fields,
+                $offset,
+                $limit
+            );
+        }
+        else {
+            $segment->setRepository($this);
+            $segment->setFields($fields);
+            $segment->setOffset($offset);
+            $segment->setLimit($limit);
+        }
+
+
+        return $this->getSegmentByQuery($query, $parameters, $offset, $limit, $segment);
+
+
+
+
+    }
+
+
+    public function getSegmentByQuery($query, array $parameters = array(), $offset = null, $limit = null, Segment &$segment = null)
     {
 
 
@@ -189,13 +268,19 @@ class Repository extends \Phi\Model\Repository
             SELECT COUNT(*) as total FROM (".$query.") countTable 
         ";
 
+        $entities = $dataset->getAll();
 
         $totalRows = (int) $this->queryAndFetchValue($countQuery, $parameters, 'total');
-        return $dataset->getAll();
+
+        $segment->setEntities($entities);
+        $segment->setTotal($totalRows);
+
+
+        return $entities;
     }
 
 
-    public function getSegment(array $fields = null, $offset = null, $limit = null, &$totalRows = null)
+    public function getSegment(array $fields = null, $offset = null, $limit = null, Segment &$segment = null)
     {
 
         if(!empty($fields)) {
@@ -213,7 +298,7 @@ class Repository extends \Phi\Model\Repository
             SELECT ".$fieldList." FROM ".$this->getTableName()."
         ";
 
-        return $this->getEntitiesByQuery($query, array(), $offset, $limit, $totalRows);
+        return $this->getEntitiesByQuery($query, array(), $offset, $limit, $segment);
     }
 
 

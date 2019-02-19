@@ -300,6 +300,19 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
+    /**
+     * @param null $className
+     * @return Repository
+     */
+    public function getRepository($className = null)
+    {
+        if($className === null) {
+            return $this->repository;
+        }
+        else {
+            return $this->getApplication()->getModel()->getRepository($className);
+        }
+    }
 
 
     public function jsonSerialize()
