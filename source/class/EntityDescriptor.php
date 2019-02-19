@@ -5,7 +5,7 @@ namespace Planck\Model;
 
 use Planck\Exception\DoesNotExist;
 
-class EntityDescriptor
+class EntityDescriptor implements \JsonSerializable
 {
 
     /**
@@ -69,7 +69,7 @@ class EntityDescriptor
     {
 
         foreach ($this->getFields() as $field) {
-            if($field->isCaption()) {
+            if($field->isLabel()) {
                 return $field->getName();
             }
         }
@@ -125,6 +125,15 @@ class EntityDescriptor
     public function getFields()
     {
         return $this->fields;
+    }
+
+    public function JSONSerialize()
+    {
+        $data = [];
+        $data['entityType'] = get_class($this->repository->getEntityInstance());
+        $data['fields'] = $this->getFields();
+
+        return $data;
     }
 
 

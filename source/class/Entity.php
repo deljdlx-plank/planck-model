@@ -271,7 +271,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     public function toExtendedArray()
     {
 
-        //die('EXIT '.__FILE__.'@'.__LINE__);
+
         $this->loadAll();
 
         $entityData = $this->toArray();
@@ -290,6 +290,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             'metadata' => array(
                 'fingerprint' => $this->getFingerPrint(),
                 'className' => get_class($this),
+                'descriptor' => $this->getDescriptor()
             ),
         );
     }
