@@ -5,6 +5,7 @@ namespace Planck\Model;
 
 
 use Phi\Traits\Introspectable;
+use Planck\Exception;
 use Planck\Model\Exception\DoesNotExist;
 use Planck\Model\Interfaces\Timestampable as iTimestampable;
 use Planck\Model\Traits\Timestampable;
@@ -32,6 +33,11 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
 
     protected $foreignKeys = [];
+
+    /**
+     * @var Repository
+     */
+    protected $repository;
 
 
     public function __construct($repository = null)
@@ -196,6 +202,9 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
         if(is_array($fieldNameOrValues)) {
             $dataset = $this->repository->getBy($fieldNameOrValues);
+            if($dataset->length()>1) {
+                throw new Exception('More than one record returned');
+            }
             $instance = $dataset->first();
             $this->setValues($instance->getValues());
         }

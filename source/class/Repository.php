@@ -4,6 +4,7 @@ namespace Planck\Model;
 
 
 
+use MongoDB\BSON\Timestamp;
 use Phi\Model\Entity;
 use Planck\Application\Application;
 use Planck\Model\Exception\DoesNotExist;
@@ -381,15 +382,16 @@ class Repository extends \Phi\Model\Repository
             }
         }
 
-
-
         if($needUpdate) {
+
 
             $values[':id'] = $entity->getId();
 
-
-            if($entity instanceof Timestampable) {
-                $entity->setValue('update_date', $this->now());
+            if($entity instanceof Timestampable || $entity->hasTrait(\Planck\Model\Traits\Timestampable::class)) {
+                $now = $this->now();
+                $entity->setValue('update_date', $now);
+                $fields[] = 'update_date = :update_date';
+                $values[':update_date'] = $now;
             }
 
             $query = "
