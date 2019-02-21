@@ -66,7 +66,7 @@ class EntityDescriptor implements \JsonSerializable
             return $this->fields[$fieldName];
         }
         else {
-            throw new DoesNotExist('No field with name "'.$fieldName.'" for '.get_class($this));
+            throw new \Planck\Model\Exception\DoesNotExist('No field with name "'.$fieldName.'" for '.get_class($this));
         }
     }
 

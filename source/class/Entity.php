@@ -61,13 +61,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
      */
     public function getDescriptor()
     {
-        $descriptorClassName = str_replace('\Entity\\', '\Descriptor\\', get_class($this));
-        if(class_exists($descriptorClassName)) {
-            return new $descriptorClassName($this->getRepository());
-        }
-        else {
-            return new EntityDescriptor($this->getRepository());
-        }
+        return $this->getRepository()->getDescriptor();
     }
 
 
@@ -320,6 +314,9 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     public function getRepository($className = null)
     {
         if($className === null) {
+            if($this->repository === null) {
+                $this->repository = $this->getApplication()->getModelRepositoryByEntityName(get_class($this));
+            }
             return $this->repository;
         }
         else {
@@ -351,6 +348,20 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     {
         return $this->getDescriptor()->getLabelFieldName();
     }
+
+
+    public function fieldExists($fieldName)
+    {
+        try {
+            $this->getDescriptor()->getFieldByName($fieldName);
+            return true;
+        }
+        catch (\Planck\Model\Exception $exception) {
+            return false;
+        }
+    }
+
+
 
     public function doBeforeStore()
     {
@@ -396,7 +407,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
                 $parentReturnValue = $parentReturnValue && $returnValue;
             }
         }
-
+        return $parentReturnValue;
 
     }
 
