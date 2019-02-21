@@ -80,7 +80,6 @@ class EntityDescriptor implements \JsonSerializable
             'caption',
             'title',
             'name',
-            'qname'
         ];
 
         foreach ($possibleKeys as $key) {

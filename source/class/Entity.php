@@ -205,6 +205,9 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             if($dataset->length()>1) {
                 throw new Exception('More than one record returned');
             }
+            if($dataset->length() == 0) {
+                throw new DoesNotExist('More record found');
+            }
             $instance = $dataset->first();
             $this->setValues($instance->getValues());
         }
@@ -341,6 +344,60 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     {
         $this->repository->startTransaction();
         return $this;
+    }
+
+
+    public function getLabelFieldName()
+    {
+        return $this->getDescriptor()->getLabelFieldName();
+    }
+
+    public function doBeforeStore()
+    {
+
+        $parentReturnValue = true;
+
+        foreach ($this->getTraits() as $trait) {
+            $methodName = basename($trait).'DoBeforeStore';
+            if(method_exists($this, $methodName)) {
+                $returnValue = $this->$methodName();
+                $parentReturnValue = $parentReturnValue && $returnValue;
+            }
+        }
+
+
+        return $returnValue;
+
+    }
+
+    public function doBeforeUpdate()
+    {
+        $parentReturnValue = parent::doBeforeUpdate();
+
+        foreach ($this->getTraits() as $trait) {
+            $methodName = basename($trait).'DoBeforeUpdate';
+            if(method_exists($this, $methodName)) {
+                $returnValue = $this->$methodName();
+                $parentReturnValue = $parentReturnValue && $returnValue;
+            }
+        }
+        return $returnValue;
+    }
+
+
+    public function doBeforeInsert()
+    {
+        $parentReturnValue = parent::doBeforeInsert();
+
+        foreach ($this->getTraits() as $trait) {
+            $methodName = basename($trait).'DoBeforeInsert';
+            if(method_exists($this, $methodName)) {
+                $returnValue = $this->$methodName();
+                $parentReturnValue = $parentReturnValue && $returnValue;
+            }
+        }
+
+
     }
 
 

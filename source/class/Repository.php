@@ -306,7 +306,12 @@ class Repository extends \Phi\Model\Repository
 
 
 
-
+    /**
+     * @param Entity $entity
+     * @param bool $dryRun
+     * @return Entity
+     * @throws Exception
+     */
     public function insert($entity, $dryRun = false)
     {
 
@@ -314,7 +319,10 @@ class Repository extends \Phi\Model\Repository
             $this->startTransaction();
         }
 
-        $entity->doBeforeInsert();
+
+        if(!$entity->doBeforeInsert()) {
+            throw new Exception('Before insert hook retourned false');
+        }
 
 
         $descriptors = $this->describe();
@@ -355,6 +363,12 @@ class Repository extends \Phi\Model\Repository
         return $entity;
     }
 
+    /**
+     * @param Entity $entity
+     * @param bool $dryRun
+     * @return Entity
+     * @throws Exception
+     */
     public function update($entity, $dryRun = false)
     {
 
@@ -362,7 +376,9 @@ class Repository extends \Phi\Model\Repository
             $this->startTransaction();
         }
 
-        $entity->doBeforeUpdate();
+        if(!$entity->doBeforeUpdate()) {
+            throw new Exception('Before Update hook retourned false');
+        }
 
         $descriptors = $this->describe();
 
@@ -386,13 +402,6 @@ class Repository extends \Phi\Model\Repository
 
 
             $values[':id'] = $entity->getId();
-
-            if($entity instanceof Timestampable || $entity->hasTrait(\Planck\Model\Traits\Timestampable::class)) {
-                $now = $this->now();
-                $entity->setValue('update_date', $now);
-                $fields[] = 'update_date = :update_date';
-                $values[':update_date'] = $now;
-            }
 
             $query = "
                 UPDATE ".$this->getTableName()." SET
