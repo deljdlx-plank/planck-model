@@ -40,6 +40,13 @@ class EntityDescriptor implements \JsonSerializable
             $fieldName = $fieldDescriptor['name'];
             $this->fields[$fieldName] = $descriptor;
         }
+
+        $labelFieldName = $this->getLabelFieldName();
+        if($labelFieldName) {
+            $this->getFieldByName($labelFieldName)->isLabel(true);
+        }
+
+
     }
 
     public function getEntityLabel()
@@ -128,9 +135,17 @@ class EntityDescriptor implements \JsonSerializable
 
     public function JSONSerialize()
     {
+
+
         $data = [];
         $data['entityType'] = get_class($this->repository->getEntityInstance());
         $data['fields'] = $this->getFields();
+
+
+
+
+
+
 
         return $data;
     }
