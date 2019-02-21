@@ -520,13 +520,19 @@ class Repository extends \Phi\Model\Repository
         $where = '';
         $parameters = array();
         foreach ($fields as $fieldName => $value) {
-            if($where == '')  {
-                $where .= $fieldName.'=:'.$fieldName.' '.$collate.' ';
+            if($this->getDescriptor()->fieldExists($fieldName)) {
+
+                if($value !== null) {
+                    if ($where == '') {
+                        $where .= $fieldName . '=:' . $fieldName . ' ' . $collate . ' ';
+                    }
+                    else {
+                        $where .= 'AND ' . $fieldName . '=:' . $fieldName . ' ' . $collate . ' ';
+                    }
+                    $parameters[':' . $fieldName] = $value;
+                }
+
             }
-            else {
-                $where .= 'AND '.$fieldName.'=:'.$fieldName.' '.$collate.' ';
-            }
-            $parameters[':'.$fieldName] = $value;
         }
 
         $query = '
@@ -536,6 +542,7 @@ class Repository extends \Phi\Model\Repository
             ';
 
         $rows = $this->queryAndFetch($query, $parameters);
+
         return $this->getDataset($rows);
 
     }

@@ -70,6 +70,16 @@ class EntityDescriptor implements \JsonSerializable
         }
     }
 
+    public function fieldExists($fieldName) {
+        try {
+            $this->getFieldByName($fieldName);
+            return true;
+        }
+        catch(\Planck\Model\Exception\DoesNotExist $exception) {
+            return false;
+        }
+    }
+
 
 
     public function getLabelFieldName()
