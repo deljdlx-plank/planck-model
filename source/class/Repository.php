@@ -652,5 +652,18 @@ class Repository extends \Phi\Model\Repository
     }
 
 
+
+    public function getDataset($rows, $cast = null, $valueFilter = null)
+    {
+        $phiDataset = parent::getDataset($rows, $cast, $valueFilter);
+
+        $dataset = new Dataset();
+        $dataset->loadFromDataset($phiDataset);
+        return $dataset;
+
+
+    }
+
+
 }
 
