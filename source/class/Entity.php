@@ -366,13 +366,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     public function doBeforeStore()
     {
 
-        $parentReturnValue = true;
+        $returnValue = true;
 
         foreach ($this->getTraits() as $trait) {
             $methodName = basename($trait).'DoBeforeStore';
             if(method_exists($this, $methodName)) {
-                $returnValue = $this->$methodName();
-                $parentReturnValue = $parentReturnValue && $returnValue;
+                $result = $this->$methodName();
+                $returnValue = $returnValue && $result;
             }
         }
 
@@ -383,13 +383,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     public function doBeforeUpdate()
     {
-        $parentReturnValue = parent::doBeforeUpdate();
+        $returnValue = parent::doBeforeUpdate();
 
         foreach ($this->getTraits() as $trait) {
             $methodName = basename($trait).'DoBeforeUpdate';
             if(method_exists($this, $methodName)) {
-                $returnValue = $this->$methodName();
-                $parentReturnValue = $parentReturnValue && $returnValue;
+                $result = $this->$methodName();
+                $returnValue = $returnValue && $result;
             }
         }
         return $returnValue;
@@ -398,16 +398,16 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     public function doBeforeInsert()
     {
-        $parentReturnValue = parent::doBeforeInsert();
+        $returnValue = parent::doBeforeInsert();
 
         foreach ($this->getTraits() as $trait) {
             $methodName = basename($trait).'DoBeforeInsert';
             if(method_exists($this, $methodName)) {
-                $returnValue = $this->$methodName();
-                $parentReturnValue = $parentReturnValue && $returnValue;
+                $result = $this->$methodName();
+                $returnValue = $returnValue && $result;
             }
         }
-        return $parentReturnValue;
+        return $returnValue;
 
     }
 
