@@ -4,8 +4,7 @@ namespace Planck\Model;
 
 
 
-use MongoDB\BSON\Timestamp;
-use Phi\Model\Entity;
+use Phi\Model\Entity as PhiEntity;
 use Planck\Application\Application;
 use Planck\Model\Exception\DoesNotExist;
 use Planck\Model\Exception\NotUnique;
@@ -418,7 +417,7 @@ class Repository extends \Phi\Model\Repository
 
 
 
-    public function store(Entity $object, $dryRun = false)
+    public function store(PhiEntity $object, $dryRun = false)
     {
 
         if($dryRun) {

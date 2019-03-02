@@ -4,7 +4,7 @@
 namespace Planck\Model;
 
 
-use Planck\Exception;
+//use Planck\Exception;
 
 class GenericObjectProperty implements \JsonSerializable
 {
