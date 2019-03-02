@@ -98,10 +98,9 @@ class Repository extends \Phi\Model\Repository
 
 
         if(!$this->describeData) {
-            $query ='PRAGMA table_info('.$this->escape($this->getTableName()).');';
-            $rows = $this->queryAndFetch($query);
-            $this->describeData = $rows;
+            $this->describeData = $this->getTableDescriptor();
         }
+
 
 
         if($toDescriptor) {
@@ -111,9 +110,6 @@ class Repository extends \Phi\Model\Repository
         else {
             return $this->describeData;
         }
-
-
-
     }
 
     /**
@@ -142,7 +138,7 @@ class Repository extends \Phi\Model\Repository
         $descriptors = $this->describe();
 
         foreach ($descriptors as $descriptor) {
-            $fields[] = $descriptor['name'];
+            $fields[] = $descriptor->getName();
         }
 
         return $fields;
@@ -339,7 +335,7 @@ class Repository extends \Phi\Model\Repository
         }
 
         foreach ($descriptors as $descriptor) {
-            $fieldName = $descriptor['name'];
+            $fieldName = $descriptor->getName();
 
             if($entity->getValue($fieldName) !== null) {
                 $value = $entity->getValue($fieldName);
@@ -388,7 +384,7 @@ class Repository extends \Phi\Model\Repository
 
         $needUpdate = false;
         foreach ($descriptors as $descriptor) {
-            $fieldName = $descriptor['name'];
+            $fieldName = $descriptor->getName();
             if($entity->isFieldUpdated($fieldName)) {
                 $needUpdate = true;
                 $value = $entity->getValue($fieldName);

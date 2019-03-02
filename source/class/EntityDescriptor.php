@@ -37,7 +37,7 @@ class EntityDescriptor implements \JsonSerializable
 
         foreach ($this->descriptor as $fieldDescriptor) {
             $descriptor = new FieldDescriptor($fieldDescriptor);
-            $fieldName = $fieldDescriptor['name'];
+            $fieldName = $fieldDescriptor->getName();
             $this->fields[$fieldName] = $descriptor;
         }
 

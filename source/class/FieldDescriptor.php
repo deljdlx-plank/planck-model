@@ -31,13 +31,16 @@ class FieldDescriptor implements \JsonSerializable
     protected $accessLevel = self::LEVEL_GUEST;
 
     /**
-     * @var array
+     * @var \Phi\Database\FieldDescriptor
      */
     protected $fieldDescriptor;
 
     public function __construct($fieldDescriptor)
     {
-        $this->fieldDescriptor = array_merge($this->defaultFieldDescriptor, $fieldDescriptor);
+        $this->fieldDescriptor = $fieldDescriptor;
+
+        //$this->fieldDescriptor->
+        //$this->fieldDescriptor = array_merge($this->defaultFieldDescriptor, $fieldDescriptor->toArray());
     }
 
     public function getDescriptor()
@@ -53,10 +56,7 @@ class FieldDescriptor implements \JsonSerializable
 
     public function isPrimaryKey()
     {
-        if($this->fieldDescriptor['pk']) {
-            return true;
-        }
-        return false;
+        return $this->fieldDescriptor->isPrimaryKey();
     }
 
     public function getDefaultValue()
@@ -72,7 +72,7 @@ class FieldDescriptor implements \JsonSerializable
 
     public function getName()
     {
-        return  $this->fieldDescriptor['name'];
+        return  $this->fieldDescriptor->getName();
     }
 
     public function getType()
@@ -83,9 +83,9 @@ class FieldDescriptor implements \JsonSerializable
     public function isLabel($value = null)
     {
         if($value !== null) {
-            $this->fieldDescriptor['_isLabel'] = $value;
+            $this->fieldDescriptor->isLabel($value);
         }
-        return $this->fieldDescriptor['_isLabel'];
+        return $this->fieldDescriptor->isLabel();
     }
 
     public function isInt()
@@ -115,12 +115,14 @@ class FieldDescriptor implements \JsonSerializable
             'role' => '',
         ];
 
+
         if($this->isLabel()) {
             $data['role'] = 'label';
         }
         else if($this->isPrimaryKey()) {
             $data['role'] = 'primaryKey';
         }
+
 
 
         return $data;
