@@ -14,7 +14,7 @@ class Model
     /**
      * @var Repository[]
      */
-    private static $repositories = [];
+    protected static $repositories = [];
 
 
 
@@ -27,9 +27,11 @@ class Model
     protected $entityDecorators = [];
 
 
-    public function __construct()
+    public function __construct(Source $source = null)
     {
-
+        if($source) {
+            $this->addSource($source);
+        }
     }
 
     public function addEntityDecorator($entityClassName, $decoratorClassName)
