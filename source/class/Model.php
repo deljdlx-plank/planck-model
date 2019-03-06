@@ -87,22 +87,27 @@ class Model
 
 
         if(class_exists($entityName)) {
+
+            $repository = null;
+
+
+
             $repositoryClassName = str_replace('\Entity\\', '\Repository\\', $entityName);
             if(isset(static::$repositories[$repositoryClassName])) {
                 $repository = static::$repositories[$repositoryClassName];
             }
             else {
-                $repository = new $repositoryClassName($this);
-                static::$repositories[$repositoryClassName] = $repository;
+                if(class_exists($repositoryClassName)) {
+                    if(is_subclass_of($repositoryClassName,  \Phi\Model\Repository::class)) {
+                        $repository = new $repositoryClassName($this);
+                        static::$repositories[$repositoryClassName] = $repository;
+                    }
+
+
+                }
             }
 
-
-
             $instance = new $entityName($repository);
-
-
-
-
 
             $instance = $this->decorateEntity($instance);
 
