@@ -478,9 +478,7 @@ class Repository extends \Phi\Model\Repository
 
 
         $collate = '';
-        if($caseInsensitive) {
-            $collate = 'COLLATE NOCASE';
-        }
+
 
         $query = '
         SELECT * FROM '.$this->getTableName().'

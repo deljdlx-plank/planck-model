@@ -131,7 +131,9 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     public function loadForeignEntity($repositoryName, $innerForeignKey)
     {
+
         $repository = $this->getRepository($repositoryName);
+
         try {
             return $repository->getById($this->getValue($innerForeignKey));
         } catch(\Exception $exception) {
@@ -313,6 +315,8 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
      */
     public function getRepository($className = null)
     {
+
+
         if($className === null) {
             if($this->repository === null) {
                 $this->repository = $this->getApplication()->getModelRepositoryByEntityName(get_class($this));
