@@ -61,7 +61,7 @@ class FieldDescriptor implements \JsonSerializable
 
     public function getDefaultValue()
     {
-        return $this->fieldDescriptor['dflt_value'];
+        return $this->fieldDescriptor->getDefaultValue();
     }
 
 
@@ -83,6 +83,7 @@ class FieldDescriptor implements \JsonSerializable
     public function isLabel($value = null)
     {
         if($value !== null) {
+
             $this->fieldDescriptor->isLabel($value);
         }
         return $this->fieldDescriptor->isLabel();
@@ -112,11 +113,13 @@ class FieldDescriptor implements \JsonSerializable
     {
         $data = [
             'name' => $this->getName(),
-            'role' => '',
+            'role' => null,
+            'defaultValue' => $this->getDefaultValue(),
         ];
 
 
         if($this->isLabel()) {
+
             $data['role'] = 'label';
         }
         else if($this->isPrimaryKey()) {
