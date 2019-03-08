@@ -58,6 +58,11 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     }
 
+    public function getModel()
+    {
+        return $this->getRepository()->getModel();
+    }
+
 
     /**
      * @return EntityDescriptor
