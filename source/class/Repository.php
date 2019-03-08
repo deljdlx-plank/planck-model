@@ -411,8 +411,11 @@ class Repository extends \Phi\Model\Repository
     }
 
 
-
-
+    /**
+     * @param PhiEntity $object
+     * @param bool $dryRun
+     * @return Entity
+     */
     public function store(PhiEntity $object, $dryRun = false)
     {
 
@@ -420,7 +423,7 @@ class Repository extends \Phi\Model\Repository
             $this->startTransaction();
         }
 
-        if(!$object->getValue('id')) {
+        if(!$object->getId()) {
             return $this->insert($object, $dryRun);
         }
         else {
