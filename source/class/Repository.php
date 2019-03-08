@@ -468,12 +468,12 @@ class Repository extends \Phi\Model\Repository
      * @param bool $caseInsensitive
      * @return Dataset
      */
-    public function getBy($field, $value = null, $orderBy = '', $caseInsensitive = true)
+    public function getBy($field, $value = null, $queryExtra = '', $caseInsensitive = true)
     {
 
 
         if(is_array($field)) {
-            return $this->getByArray($field, $orderBy, $caseInsensitive);
+            return $this->getByArray($field, $queryExtra, $caseInsensitive);
         }
 
 
@@ -483,7 +483,7 @@ class Repository extends \Phi\Model\Repository
         $query = '
         SELECT * FROM '.$this->getTableName().'
         WHERE '.$field.' = :value '.$collate.'
-            '.$orderBy.'
+            '.$queryExtra.'
         ';
 
 
@@ -502,7 +502,7 @@ class Repository extends \Phi\Model\Repository
      * @param bool $caseInsensitive
      * @return Dataset
      */
-    public function getByArray(array $fields, $orderBy = '', $caseInsensitive = true)
+    public function getByArray(array $fields, $queryExtra = '', $caseInsensitive = true)
     {
 
         $collate = '';
@@ -531,7 +531,7 @@ class Repository extends \Phi\Model\Repository
         $query = '
                 SELECT * FROM '.$this->getTableName().'
                 WHERE '.$where.'
-                '.$orderBy.'
+                '.$queryExtra.'
             ';
 
         $rows = $this->queryAndFetch($query, $parameters);
@@ -549,9 +549,9 @@ class Repository extends \Phi\Model\Repository
      * @return Entity
      * @throws \Exception
      */
-    public function getOneBy($field, $value, $orderBy = '', $caseInsensitive = true)
+    public function getOneBy($field, $value, $queryExtra = '', $caseInsensitive = true)
     {
-        $records = $this->getBy($field, $value, $orderBy, $caseInsensitive);
+        $records = $this->getBy($field, $value, $queryExtra, $caseInsensitive);
         if(count($records) === 1) {
             return $records[0];
         }
@@ -653,8 +653,15 @@ class Repository extends \Phi\Model\Repository
         $dataset = new Dataset();
         $dataset->loadFromDataset($phiDataset);
         return $dataset;
+    }
 
 
+    /**
+     * @return Model
+     */
+    public function getModel()
+    {
+        return $this->model;
     }
 
 

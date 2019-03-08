@@ -41,14 +41,28 @@ class Dataset extends \Phi\Model\Dataset
         return $dataset;
     }
 
-
-    /*
-    public function loadUsers()
+    /**
+     * @return Entity[]
+     */
+    public function getAll()
     {
-        return $this->loadForeignEntity('User', 'user_id', '__user');
+        return parent::getAll();
     }
-    */
 
+
+    /**
+     * @return array
+     */
+    public function toExtendedArray()
+    {
+        $data = [];
+        foreach ($this->getAll() as $entity) {
+            $data[] = $entity->toExtendedArray();
+        }
+
+        return $data;
+
+    }
 
     public function wrapEntity(Entity $entity)
     {

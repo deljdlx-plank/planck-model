@@ -102,9 +102,13 @@ class Model
                         $repository = new $repositoryClassName($this);
                         static::$repositories[$repositoryClassName] = $repository;
                     }
-
-
                 }
+            }
+
+            if($sourceName) {
+                $repository->setSource(
+                    $this->getSource($sourceName)
+                );
             }
 
             $instance = new $entityName($repository);
@@ -167,6 +171,12 @@ class Model
         else {
             throw new Exception('Model repository '.$repositoryName.' does not exists');
         }
+    }
+
+    public function getRepositoryByEntityName($entityName)
+    {
+        $entity = $this->getEntity($entityName);
+        return $entity->getRepository();
     }
 
 
