@@ -289,6 +289,12 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         return $this->primaryKeyName;
     }
 
+    /**
+     * @param $id
+     * @param bool $isATry
+     * @return $this
+     * @throws DoesNotExist
+     */
     public function loadById($id, $isATry = false)
     {
         try {
@@ -311,6 +317,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         return $this;
     }
 
+    /**
+     * @param $fieldNameOrValues
+     * @param null $value
+     * @return $this
+     * @throws DoesNotExist
+     * @throws Exception
+     */
     public function loadBy($fieldNameOrValues, $value = null)
     {
 
