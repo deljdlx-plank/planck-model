@@ -78,9 +78,10 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
-
-
-
+    /**
+     * @param Entity $entity
+     * @return $this
+     */
     public function loadFromEntity(Entity $entity)
     {
         $this->setValues($entity->getValues());
@@ -88,8 +89,9 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
-
-
+    /**
+     * @return Model
+     */
     public function getModel()
     {
         return $this->model;
@@ -111,6 +113,10 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
+    /**
+     * @param $trait
+     * @return $this
+     */
     protected function initializeTraits($trait)
     {
         $traits = class_uses($trait);
@@ -199,6 +205,12 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         }
     }
 
+    /**
+     * @param $property
+     * @param $repositoryName
+     * @param $foreignKey
+     * @return Entity
+     */
     public function getForeignEntity(&$property, $repositoryName, $foreignKey)
     {
         if ($property === null) {
@@ -209,6 +221,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
+    /**
+     * @param $entityClassName
+     * @param null $attribute
+     * @param string $queryExtraString
+     * @return $this
+     * @throws \Planck\Model\Exception
+     */
     public function loadOwnedEntities($entityClassName, &$attribute = null, $queryExtraString = '')
     {
         if (!array_key_exists($entityClassName, $this->ownedEntitiesList)) {
@@ -233,6 +252,11 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     }
 
+    /**
+     * @param $entity
+     * @return \Phi\Model\Repository|Repository
+     * @throws \Planck\Model\Exception
+     */
     public function getRepositoryByEntity($entity)
     {
         if (is_object($entity)) {
