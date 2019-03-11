@@ -3,7 +3,6 @@
 namespace Planck\Model;
 
 
-
 use Phi\Traits\Introspectable;
 use Planck\Exception;
 use Planck\Model\Exception\DoesNotExist;
@@ -26,7 +25,6 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     protected $primaryKeyName = 'id';
 
 
-
     protected $ownedEntitiesList = [];
 
     /**
@@ -43,13 +41,23 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     protected $repository;
 
 
+    /**
+     * @var Model
+     */
+    protected $model;
+
+
     public function __construct($repository = null)
     {
         parent::__construct($repository);
 
 
-
         $parentTypes = $this->getParentClasses();
+
+
+        if($repository) {
+            $this->model = $repository->getModel();
+        }
 
         foreach ($parentTypes as $type) {
             $this->initializeTraits($type);
@@ -58,9 +66,33 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     }
 
+
+    /**
+     * @param Model $model
+     * @return $this
+     */
+    public function setModel(Model $model)
+    {
+        $this->model = $model;
+        return $this;
+    }
+
+
+
+
+
+    public function loadFromEntity(Entity $entity)
+    {
+        $this->setValues($entity->getValues());
+        return $this;
+    }
+
+
+
+
     public function getModel()
     {
-        return $this->getRepository()->getModel();
+        return $this->model;
     }
 
 
@@ -71,7 +103,6 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     {
         return $this->getRepository()->getDescriptor();
     }
-
 
 
     public function getForeignKeys()
@@ -85,9 +116,9 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         $traits = class_uses($trait);
 
         foreach ($traits as $trait) {
-            $methodName = '_initializeTrait'.$this->getClassBaseName($trait);
+            $methodName = '_initializeTrait' . $this->getClassBaseName($trait);
 
-            if(method_exists($this, $methodName)) {
+            if (method_exists($this, $methodName)) {
                 $this->$methodName();
             }
         }
@@ -96,18 +127,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
-
-
-
-
-
     public function setRepository(\Phi\Model\Repository $repository)
     {
         parent::setRepository($repository);
         $fields = $repository->getEntityFields();
 
         foreach ($fields as $field) {
-            if(!isset($this->values[$field])) {
+            if (!isset($this->values[$field])) {
                 $this->values[$field] = null;
             }
         }
@@ -124,16 +150,15 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
      */
     public function loadForeignEntities($repository, $foreignKey, $queryExtra = '', $datasource = null)
     {
-        if(is_string($repository)) {
-            if(!$datasource) {
+        if (is_string($repository)) {
+            if (!$datasource) {
                 $repository = $this->getRepository($repository);
-            }
-            else {
+            } else {
                 $repository = $this->getRepository($repository, $datasource);
             }
         }
-        if(!$repository instanceof  Repository) {
-            throw new \Planck\Model\Exception('$repository must be a string or a '.Repository::class.' instance');
+        if (!$repository instanceof Repository) {
+            throw new \Planck\Model\Exception('$repository must be a string or a ' . Repository::class . ' instance');
         }
 
 
@@ -150,7 +175,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
      */
     public function getForeignEntities(&$property, $repositoryName, $foreignKey, $orderBy = '', $datasource = null)
     {
-        if($property === null) {
+        if ($property === null) {
             $property = $this->loadForeignEntities($repositoryName, $foreignKey, $orderBy, $datasource);
         }
         return $property;
@@ -169,14 +194,14 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
         try {
             return $repository->getById($this->getValue($innerForeignKey));
-        } catch(\Exception $exception) {
+        } catch (\Exception $exception) {
             return $repository->getEntityInstance();
         }
     }
 
     public function getForeignEntity(&$property, $repositoryName, $foreignKey)
     {
-        if($property === null) {
+        if ($property === null) {
             $property = $this->loadForeignEntity($repositoryName, $foreignKey);
             $this->ownedEntities[$foreignKey] = $property;
         }
@@ -184,13 +209,11 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
-
     public function loadOwnedEntities($entityClassName, &$attribute = null, $queryExtraString = '')
     {
-        if(!array_key_exists($entityClassName, $this->ownedEntitiesList)) {
-            throw new \Planck\Model\Exception('Can not load owned entities '.$entityClassName.'. Entity must be declared in '.get_class($this).'::$ownedEntitiesList');
+        if (!array_key_exists($entityClassName, $this->ownedEntitiesList)) {
+            throw new \Planck\Model\Exception('Can not load owned entities ' . $entityClassName . '. Entity must be declared in ' . get_class($this) . '::$ownedEntitiesList');
         }
-
 
 
         $foreignKey = $this->ownedEntitiesList[$entityClassName];
@@ -200,9 +223,10 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             $queryExtraString
         );
 
+
         $this->ownedEntities[$entityClassName] = $ownedEntities;
 
-            $attribute = $ownedEntities;
+        $attribute = $ownedEntities;
 
 
         return $this;
@@ -211,8 +235,8 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     public function getRepositoryByEntity($entity)
     {
-        if(is_object($entity)) {
-            if(!$entity instanceof \Phi\Model\Entity) {
+        if (is_object($entity)) {
+            if (!$entity instanceof \Phi\Model\Entity) {
                 throw new \Planck\Model\Exception('Entity must be a string or an instance  of \Phi\Model\Entity');
             }
             return $entity->getRepository();
@@ -224,13 +248,10 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
-
     public function getOwnedEntities()
     {
         return $this->ownedEntities;
     }
-
-
 
 
     public function setPrimaryKey($value)
@@ -255,14 +276,12 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             foreach ($this->getValues() as $key => $value) {
                 $this->oldValues[$key] = $value;
             }
-        }
-        catch(DoesNotExist $exception) {
-            if($isATry) {
+        } catch (DoesNotExist $exception) {
+            if ($isATry) {
                 return $this;
             }
             throw $exception;
         }
-
 
 
         return $this;
@@ -271,18 +290,17 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     public function loadBy($fieldNameOrValues, $value = null)
     {
 
-        if(is_array($fieldNameOrValues)) {
+        if (is_array($fieldNameOrValues)) {
             $dataset = $this->repository->getBy($fieldNameOrValues);
-            if($dataset->length()>1) {
+            if ($dataset->length() > 1) {
                 throw new Exception('More than one record returned');
             }
-            if($dataset->length() == 0) {
+            if ($dataset->length() == 0) {
                 throw new DoesNotExist('More record found');
             }
             $instance = $dataset->first();
             $this->setValues($instance->getValues());
-        }
-        else {
+        } else {
             $this->setValues(
                 $this->repository->getOneBy(
                     $fieldNameOrValues,
@@ -301,7 +319,6 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             '\\', '/', get_class($this)
         ));
     }
-
 
 
     public function getId()
@@ -343,8 +360,8 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         $data['_className'] = get_class($this);
 
         foreach ($traits as $trait) {
-            $methodName = '_jsonSerializeTrait'.$this->getClassBaseName($trait);
-            if(method_exists($this, $methodName)) {
+            $methodName = '_jsonSerializeTrait' . $this->getClassBaseName($trait);
+            if (method_exists($this, $methodName)) {
                 $data = array_merge($data, $this->$methodName());
             }
         }
@@ -361,21 +378,29 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         $foreignEntities = array();
 
         foreach ($this as $attribute => $value) {
-            if($value instanceof Entity) {
-                $foreignEntities[$attribute] = $value->toExtendedArray();
+            if ($value instanceof Entity) {
+                $foreignEntities[$attribute] = array(
+                    'metadata' => $value->getMetadata(),
+                    'values' => $value->getValues(),
+                );
             }
         }
 
 
         return array(
-           'values' => $entityData,
+            'metadata' => $this->getMetadata(),
+            'values' => $entityData,
             'foreignEntities' => $foreignEntities,
             'ownedEntitites' => $this->ownedEntities,
-            'metadata' => array(
-                'fingerprint' => $this->getFingerPrint(),
-                'className' => get_class($this),
-                'descriptor' => $this->getDescriptor()
-            ),
+        );
+    }
+
+    public function getMetadata()
+    {
+        return array(
+            'fingerprint' => $this->getFingerPrint(),
+            'className' => get_class($this),
+            'descriptor' => $this->getDescriptor()
         );
     }
 
@@ -393,14 +418,40 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     {
 
 
-        if($className === null) {
-            if($this->repository === null) {
-                $this->repository = $this->getApplication()->getModelRepositoryByEntityName(get_class($this));
+        if ($className === null) {
+            if ($this->repository === null) {
+
+
+                $repositoryName = str_replace('\Entity\\', '\Repository\\', get_class($this));
+                if($this->repositoryExists($repositoryName)) {
+                    $this->repository = $this->getModel()->getRepository($repositoryName);
+                    return $this->repository;
+                }
+
+                else {
+                    $parentClasses = $this->getParentClasses();
+                    foreach ($parentClasses as $parentClassName) {
+
+                        $repositoryName = str_replace('\Entity\\', '\Repository\\', $parentClassName);
+
+                        if($this->repositoryExists($repositoryName)) {
+                            $this->repository = $this->getModel()->getRepository($repositoryName);
+                            return $this->repository;
+                        }
+                    }
+                }
+                throw new \Planck\Model\Exception('Can not find a valid repository for entity "'.get_class($this).'"');
             }
             return $this->repository;
-        }
-        else {
+        } else {
             return $this->getApplication()->getModel()->getRepository($className);
+        }
+    }
+
+    protected function repositoryExists($repositoryName)
+    {
+        if(class_exists($repositoryName) && is_a($repositoryName, \Phi\Model\Repository::class, true)) {
+            return true;
         }
     }
 
@@ -435,12 +486,10 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         try {
             $this->getDescriptor()->getFieldByName($fieldName);
             return true;
-        }
-        catch (\Planck\Model\Exception $exception) {
+        } catch (\Planck\Model\Exception $exception) {
             return false;
         }
     }
-
 
 
     public function doBeforeStore()
@@ -449,8 +498,8 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         $returnValue = true;
 
         foreach ($this->getTraits() as $trait) {
-            $methodName = basename($trait).'DoBeforeStore';
-            if(method_exists($this, $methodName)) {
+            $methodName = basename($trait) . 'DoBeforeStore';
+            if (method_exists($this, $methodName)) {
                 $result = $this->$methodName();
                 $returnValue = $returnValue && $result;
             }
@@ -466,8 +515,8 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         $returnValue = parent::doBeforeUpdate();
 
         foreach ($this->getTraits() as $trait) {
-            $methodName = basename($trait).'DoBeforeUpdate';
-            if(method_exists($this, $methodName)) {
+            $methodName = basename($trait) . 'DoBeforeUpdate';
+            if (method_exists($this, $methodName)) {
                 $result = $this->$methodName();
                 $returnValue = $returnValue && $result;
             }
@@ -482,11 +531,11 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
         foreach ($this->getTraits() as $trait) {
 
-            $methodName = basename($trait).'DoBeforeInsert';
-            if(method_exists($this, $methodName)) {
+            $methodName = basename($trait) . 'DoBeforeInsert';
+            if (method_exists($this, $methodName)) {
                 $result = $this->$methodName();
-                if(!$result) {
-                    throw new \Planck\Model\Exception('Trait '.$trait.' has returned a false in doBeforeInsert hook');
+                if (!$result) {
+                    throw new \Planck\Model\Exception('Trait ' . $trait . ' has returned a false in doBeforeInsert hook');
                 }
                 $returnValue = $returnValue && $result;
             }

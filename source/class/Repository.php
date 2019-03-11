@@ -510,7 +510,10 @@ class Repository extends \Phi\Model\Repository
 
         $collate = '';
         if($caseInsensitive) {
-            $collate = 'COLLATE NOCASE';
+            /**
+             * @todo
+             */
+            //$collate = 'COLLATE NOCASE';
         }
 
         $where = '';

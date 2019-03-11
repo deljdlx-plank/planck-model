@@ -122,6 +122,7 @@ class Model
             throw new Exception('Model entity '.$entityName.' does not exists');
         }
 
+        $instance->setModel($this);
         return $instance;
     }
 
