@@ -94,6 +94,9 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
      */
     public function getModel()
     {
+        if(!$this->model) {
+            $this->model = $this->application->getModel();
+        }
         return $this->model;
     }
 
@@ -466,24 +469,36 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
                 }
 
                 else {
-                    $parentClasses = $this->getParentClasses();
-                    foreach ($parentClasses as $parentClassName) {
-
-                        $repositoryName = str_replace('\Entity\\', '\Repository\\', $parentClassName);
-
-                        if($this->repositoryExists($repositoryName)) {
-                            $this->repository = $this->getModel()->getRepository($repositoryName);
-                            return $this->repository;
-                        }
+                    $repository = $this->getInheritedRepository();
+                    if($repository) {
+                        $this->repository = $repository;
+                        return $this->repository;
                     }
                 }
                 throw new \Planck\Model\Exception('Can not find a valid repository for entity "'.get_class($this).'"');
             }
             return $this->repository;
         } else {
-            return $this->getApplication()->getModel()->getRepository($className);
+            return $this->getModel()->getRepository($className);
         }
     }
+
+
+    protected function getInheritedRepository()
+    {
+        $parentClasses = $this->getParentClasses();
+        foreach ($parentClasses as $parentClassName) {
+
+            $repositoryName = str_replace('\Entity\\', '\Repository\\', $parentClassName);
+
+            if($this->repositoryExists($repositoryName)) {
+                $this->repository = $this->getModel()->getRepository($repositoryName);
+                return $this->repository;
+            }
+        }
+        return false;
+    }
+
 
     protected function repositoryExists($repositoryName)
     {
