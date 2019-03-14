@@ -6,6 +6,7 @@ namespace Planck\Model;
 
 use Phi\Model\Entity as PhiEntity;
 use Planck\Application\Application;
+use Planck\Helper\StringUtil;
 use Planck\Model\Exception\DoesNotExist;
 use Planck\Model\Exception\NotUnique;
 use Planck\Model\Interfaces\Timestampable;
@@ -132,19 +133,111 @@ class Repository extends \Phi\Model\Repository
     }
 
 
+    /**
+     * @param $where
+     * @param Join $joins[]
+     * @param string $extraQuery
+     */
+    public function getManyWithJoin($conditions, array $parameters, array $joins, $extraQuery = '')
+    {
+
+
+        $prefix = $this->getTableName().'.';
+        $tableAlias = $this->getTableName().'__';
+
+        $selectedFields = $this->getEntityFieldsString(
+            $prefix,
+            $tableAlias,
+            false
+        );
+
+
+        $joinPart = '';
+
+        foreach ($joins as $join) {
+            $selectedFields = array_merge($selectedFields, $join->getSelectedFields());
+            $joinPart .= $join->getJoin();
+        }
+
+
+
+        if(is_string($conditions)) {
+          $where = $this->getTableName().".".$conditions;
+        }
+        else if(is_array($conditions)) {
+            $where = array_shift($conditions);
+            foreach ($conditions as $condition) {
+                $where .= ' AND '. $this->getTableName().".".$condition;
+            }
+
+
+
+        }
+
+        $query = "
+            SELECT
+            ".implode(','."\n", $selectedFields)."
+            FROM ".$this->getTableName()."
+                ".$joinPart."
+            WHERE
+                ".$where."
+            ".$extraQuery."
+        ";
+
+        $rows = $this->queryAndFetch($query, $parameters);
+
+        //=======================================================
+
+        $returnValues = [];
+
+        foreach ($rows as $values) {
+            $result = [];
+
+            $entity = $this->getEntityInstance();
+            foreach ($values as $alias => $value) {
+
+                if(preg_match('`^'.$tableAlias.'`', $alias)) {
+                    $fieldName = preg_replace('`^'.$tableAlias.'`', '', $alias);
+                    $entity->setValue($fieldName, $value);
+                }
+            }
+            $result[get_class($entity)] = $entity;
+
+            foreach ($joins as $join) {
+                $joinedEntity = $join->getForeignEntity($values);
+                $result[get_class($joinedEntity)] = $joinedEntity;
+            }
+
+            $returnValues[] = $result;
+        }
+
+
+        return $returnValues;
+
+
+
+
+
+    }
+
+    public function getPrimaryKeyFieldName()
+    {
+        return $this->getDescriptor()->getPrimaryKeyField()->getName();
+    }
+
+
 
     public function getEntityFields()
     {
         $descriptors = $this->describe();
-
         foreach ($descriptors as $descriptor) {
             $fields[] = $descriptor->getName();
-        }
 
+        }
         return $fields;
     }
 
-    public function getEntityFieldsString($prefix = null, $alias = null)
+    public function getEntityFieldsString($prefix = null, $alias = null, $toString = true)
     {
         $fields = array();
 
@@ -152,7 +245,7 @@ class Repository extends \Phi\Model\Repository
 
 
         foreach ($descriptors as $descriptor) {
-            $fieldName = $descriptor['name'];
+            $fieldName = $descriptor->getName();
             $field = $prefix.$fieldName;
 
             if($alias) {
@@ -162,7 +255,13 @@ class Repository extends \Phi\Model\Repository
             $fields[] = $field;
         }
 
-        return implode(",\n", $fields);
+        if($toString) {
+            return implode(",\n", $fields);
+        }
+        else {
+            return $fields;
+        }
+
     }
 
 
@@ -174,7 +273,7 @@ class Repository extends \Phi\Model\Repository
      * @param null $totalRows
      * @return \Planck\Model\Entity[]
      */
-    public function search($search, array &$fields = null, $offset = null, $limit = null, Segment &$segment = null)
+    public function search($search, array &$fields = null, $offset = null, $limit = null)
     {
 
         if($fields === null) {
@@ -210,23 +309,8 @@ class Repository extends \Phi\Model\Repository
             ";
 
 
-        if(!$segment) {
-            $segment = new Segment(
-                $this,
-                $fields,
-                $offset,
-                $limit
-            );
-        }
-        else {
-            $segment->setRepository($this);
-            $segment->setFields($fields);
-            $segment->setOffset($offset);
-            $segment->setLimit($limit);
-        }
 
-
-        return $this->getSegmentByQuery($query, $parameters, $offset, $limit, $segment);
+        return $this->getSegmentByQuery($query, $parameters, $offset, $limit);
 
 
 
@@ -234,8 +318,15 @@ class Repository extends \Phi\Model\Repository
     }
 
 
-    public function getSegmentByQuery($query, array $parameters = array(), $offset = null, $limit = null, Segment &$segment = null)
+    public function getSegmentByQuery($query, array $parameters = array(), $offset = null, $limit = null, $cast = null)
     {
+
+
+        $segment = new Segment(
+            $this,
+            $offset,
+            $limit
+        );
 
 
         $limitedQuery = $query;
@@ -257,7 +348,10 @@ class Repository extends \Phi\Model\Repository
             $limitedQuery .= " OFFSET :offset ";
             $limitedQueryParameters[':offset'] = (int) $offset;
         }
-        $dataset = $this->queryAndGetDataset($limitedQuery, $limitedQueryParameters);
+
+
+        $dataset = $this->queryAndGetDataset($limitedQuery, $limitedQueryParameters, $cast);
+
 
 
         $countQuery = "
@@ -272,11 +366,11 @@ class Repository extends \Phi\Model\Repository
         $segment->setTotal($totalRows);
 
 
-        return $entities;
+        return $segment;
     }
 
 
-    public function getSegment(array $fields = null, $offset = null, $limit = null, Segment &$segment = null)
+    public function getSegment(array $fields = null, $offset = null, $limit = null, $extraQuery = '')
     {
 
         if(!empty($fields)) {
@@ -291,10 +385,10 @@ class Repository extends \Phi\Model\Repository
         }
 
         $query = "
-            SELECT ".$fieldList." FROM ".$this->getTableName()."
+            SELECT ".$fieldList." FROM ".$this->getTableName()." ".$extraQuery."
         ";
 
-        return $this->getEntitiesByQuery($query, array(), $offset, $limit, $segment);
+        return $this->getSegmentByQuery($query, array(), $offset, $limit);
     }
 
 
@@ -422,6 +516,11 @@ class Repository extends \Phi\Model\Repository
         if($dryRun) {
             $this->startTransaction();
         }
+
+        if(!$object->doBeforeStore()) {
+            throw new Exception('Before store hook retourned false');
+        }
+
 
         if(!$object->getId()) {
             return $this->insert($object, $dryRun);

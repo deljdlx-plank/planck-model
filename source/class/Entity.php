@@ -302,7 +302,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             $this->setValues($instance->getValues());
         } else {
             $this->setValues(
-                $this->repository->getOneBy(
+                $this->getRepository()->getOneBy(
                     $fieldNameOrValues,
                     $value
                 )->getValues()
