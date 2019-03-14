@@ -136,8 +136,18 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
+    /**
+     * @param \Phi\Model\Repository $repository
+     * @return $this
+     */
     public function setRepository(\Phi\Model\Repository $repository)
     {
+
+        //overloading $repository type
+        /**
+         * @var Repository $repository
+         */
+
         parent::setRepository($repository);
         $fields = $repository->getEntityFields();
 
@@ -150,12 +160,14 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         return $this;
     }
 
+
     /**
-     * @param $repositoryName
+     * @param $repository
      * @param $foreignKey
-     * @param string $orderBy
+     * @param string $queryExtra
      * @param null $datasource
      * @return Dataset
+     * @throws \Planck\Model\Exception
      */
     public function loadForeignEntities($repository, $foreignKey, $queryExtra = '', $datasource = null)
     {
@@ -163,7 +175,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             if (!$datasource) {
                 $repository = $this->getRepository($repository);
             } else {
-                $repository = $this->getRepository($repository, $datasource);
+                $repository = $this->getRepository($repository);
             }
         }
         if (!$repository instanceof Repository) {
@@ -194,7 +206,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     /**
      * @param $repositoryName
      * @param $innerForeignKey
-     * @return \Phi\Model\Entity|Entity|\Planck\Pattern\Decorator
+     * @return \Planck\Model\Entity|\Planck\Pattern\Traits\Decorator
      */
     public function loadForeignEntity($repositoryName, $innerForeignKey)
     {
@@ -452,7 +464,8 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     /**
      * @param null $className
-     * @return Repository
+     * @return bool|Repository
+     * @throws \Planck\Model\Exception
      */
     public function getRepository($className = null)
     {
@@ -505,6 +518,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         if(class_exists($repositoryName) && is_a($repositoryName, \Phi\Model\Repository::class, true)) {
             return true;
         }
+        return false;
     }
 
 
