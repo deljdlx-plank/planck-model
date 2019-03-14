@@ -519,13 +519,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             return true;
         }
         return false;
-    }
+}
 
 
-    public function jsonSerialize()
-    {
-        return $this->toArray();
-    }
+public function jsonSerialize()
+{
+    return $this->toArray();
+}
 
 
     public function commit()
