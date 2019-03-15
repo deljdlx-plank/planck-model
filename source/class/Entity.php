@@ -78,9 +78,10 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
-
-
-
+    /**
+     * @param Entity $entity
+     * @return $this
+     */
     public function loadFromEntity(Entity $entity)
     {
         $this->setValues($entity->getValues());
@@ -88,10 +89,14 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
-
-
+    /**
+     * @return Model
+     */
     public function getModel()
     {
+        if(!$this->model) {
+            $this->model = $this->application->getModel();
+        }
         return $this->model;
     }
 
@@ -111,6 +116,10 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
+    /**
+     * @param $trait
+     * @return $this
+     */
     protected function initializeTraits($trait)
     {
         $traits = class_uses($trait);
@@ -127,8 +136,18 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
+    /**
+     * @param \Phi\Model\Repository $repository
+     * @return $this
+     */
     public function setRepository(\Phi\Model\Repository $repository)
     {
+
+        //overloading $repository type
+        /**
+         * @var Repository $repository
+         */
+
         parent::setRepository($repository);
         $fields = $repository->getEntityFields();
 
@@ -141,12 +160,14 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         return $this;
     }
 
+
     /**
-     * @param $repositoryName
+     * @param $repository
      * @param $foreignKey
-     * @param string $orderBy
+     * @param string $queryExtra
      * @param null $datasource
      * @return Dataset
+     * @throws \Planck\Model\Exception
      */
     public function loadForeignEntities($repository, $foreignKey, $queryExtra = '', $datasource = null)
     {
@@ -154,7 +175,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
             if (!$datasource) {
                 $repository = $this->getRepository($repository);
             } else {
-                $repository = $this->getRepository($repository, $datasource);
+                $repository = $this->getRepository($repository);
             }
         }
         if (!$repository instanceof Repository) {
@@ -185,7 +206,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     /**
      * @param $repositoryName
      * @param $innerForeignKey
-     * @return \Phi\Model\Entity|Entity|\Planck\Pattern\Decorator
+     * @return \Planck\Model\Entity|\Planck\Pattern\Traits\Decorator
      */
     public function loadForeignEntity($repositoryName, $innerForeignKey)
     {
@@ -199,6 +220,12 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         }
     }
 
+    /**
+     * @param $property
+     * @param $repositoryName
+     * @param $foreignKey
+     * @return Entity
+     */
     public function getForeignEntity(&$property, $repositoryName, $foreignKey)
     {
         if ($property === null) {
@@ -209,6 +236,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
     }
 
 
+    /**
+     * @param $entityClassName
+     * @param null $attribute
+     * @param string $queryExtraString
+     * @return $this
+     * @throws \Planck\Model\Exception
+     */
     public function loadOwnedEntities($entityClassName, &$attribute = null, $queryExtraString = '')
     {
         if (!array_key_exists($entityClassName, $this->ownedEntitiesList)) {
@@ -233,6 +267,11 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     }
 
+    /**
+     * @param $entity
+     * @return \Phi\Model\Repository|Repository
+     * @throws \Planck\Model\Exception
+     */
     public function getRepositoryByEntity($entity)
     {
         if (is_object($entity)) {
@@ -265,6 +304,12 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         return $this->primaryKeyName;
     }
 
+    /**
+     * @param $id
+     * @param bool $isATry
+     * @return $this
+     * @throws DoesNotExist
+     */
     public function loadById($id, $isATry = false)
     {
         try {
@@ -287,6 +332,13 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
         return $this;
     }
 
+    /**
+     * @param $fieldNameOrValues
+     * @param null $value
+     * @return $this
+     * @throws DoesNotExist
+     * @throws Exception
+     */
     public function loadBy($fieldNameOrValues, $value = null)
     {
 
@@ -412,7 +464,8 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
 
     /**
      * @param null $className
-     * @return Repository
+     * @return bool|Repository
+     * @throws \Planck\Model\Exception
      */
     public function getRepository($className = null)
     {
@@ -429,37 +482,50 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
                 }
 
                 else {
-                    $parentClasses = $this->getParentClasses();
-                    foreach ($parentClasses as $parentClassName) {
-
-                        $repositoryName = str_replace('\Entity\\', '\Repository\\', $parentClassName);
-
-                        if($this->repositoryExists($repositoryName)) {
-                            $this->repository = $this->getModel()->getRepository($repositoryName);
-                            return $this->repository;
-                        }
+                    $repository = $this->getInheritedRepository();
+                    if($repository) {
+                        $this->repository = $repository;
+                        return $this->repository;
                     }
                 }
                 throw new \Planck\Model\Exception('Can not find a valid repository for entity "'.get_class($this).'"');
             }
             return $this->repository;
         } else {
-            return $this->getApplication()->getModel()->getRepository($className);
+            return $this->getModel()->getRepository($className);
         }
     }
+
+
+    protected function getInheritedRepository()
+    {
+        $parentClasses = $this->getParentClasses();
+        foreach ($parentClasses as $parentClassName) {
+
+            $repositoryName = str_replace('\Entity\\', '\Repository\\', $parentClassName);
+
+            if($this->repositoryExists($repositoryName)) {
+                $this->repository = $this->getModel()->getRepository($repositoryName);
+                return $this->repository;
+            }
+        }
+        return false;
+    }
+
 
     protected function repositoryExists($repositoryName)
     {
         if(class_exists($repositoryName) && is_a($repositoryName, \Phi\Model\Repository::class, true)) {
             return true;
         }
-    }
+        return false;
+}
 
 
-    public function jsonSerialize()
-    {
-        return $this->toArray();
-    }
+public function jsonSerialize()
+{
+    return $this->toArray();
+}
 
 
     public function commit()
