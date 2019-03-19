@@ -96,7 +96,6 @@ class Repository extends \Phi\Model\Repository
     public function describe($toDescriptor = false)
     {
 
-
         if(!$this->describeData) {
             $this->describeData = $this->getTableDescriptor();
         }
@@ -136,6 +135,13 @@ class Repository extends \Phi\Model\Repository
     public function getEntityFields()
     {
         $descriptors = $this->describe();
+
+        if(empty($descriptors)) {
+            throw new Exception('Descriptor is empty (Repository : '.get_class($this).') Do you you have initialized your database ?');
+        }
+
+
+
         $fields = [];
 
         foreach ($descriptors as $descriptor) {
