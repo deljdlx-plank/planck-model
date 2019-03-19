@@ -103,6 +103,16 @@ class Model
                         static::$repositories[$repositoryClassName] = $repository;
                     }
                 }
+                else {
+                    $repository = $this->getRepositoryByEntityName($entityName);
+                    if($repository) {
+                        static::$repositories[$repositoryClassName] = $repository;
+                    }
+                    else {
+                        throw new \Planck\Model\Exception('Can not find an eligible repository for entity '.$entityName);
+                    }
+
+                }
             }
 
             if($sourceName) {
@@ -176,8 +186,21 @@ class Model
 
     public function getRepositoryByEntityName($entityName)
     {
-        $entity = $this->getEntity($entityName);
-        return $entity->getRepository();
+
+        $repositoryClassName = str_replace('\Entity\\', '\Repository\\', $entityName);
+        if(class_exists($repositoryClassName)) {
+            return $this->getRepository($repositoryClassName);
+        }
+        else {
+
+            $parent = get_parent_class($entityName);
+            if($parent) {
+                return $this->getRepositoryByEntityName($parent, true);
+            }
+            else {
+                throw new Exception('Can not find a valid repository for '.$entityName.' does not exists');
+            }
+        }
     }
 
 
