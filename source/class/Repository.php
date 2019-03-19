@@ -136,6 +136,7 @@ class Repository extends \Phi\Model\Repository
     public function getEntityFields()
     {
         $descriptors = $this->describe();
+        $fields = [];
 
         foreach ($descriptors as $descriptor) {
             $fields[] = $descriptor->getName();
