@@ -348,7 +348,7 @@ abstract class Entity extends \Phi\Model\Entity implements iTimestampable
                 throw new Exception('More than one record returned');
             }
             if ($dataset->length() == 0) {
-                throw new DoesNotExist('More record found');
+                throw new DoesNotExist('No record founded');
             }
             $instance = $dataset->first();
             $this->setValues($instance->getValues());
