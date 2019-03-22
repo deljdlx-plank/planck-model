@@ -341,7 +341,6 @@ class Repository extends \Phi\Model\Repository
             else {
                 $limitedQueryParameters[':limit'] = -1;
             }
-
         }
 
         if($offset !== null) {
@@ -349,8 +348,8 @@ class Repository extends \Phi\Model\Repository
             $limitedQueryParameters[':offset'] = (int) $offset;
         }
 
-
         $dataset = $this->queryAndGetDataset($limitedQuery, $limitedQueryParameters, $cast);
+
 
 
 
@@ -429,13 +428,15 @@ class Repository extends \Phi\Model\Repository
         }
 
         foreach ($descriptors as $descriptor) {
-            $fieldName = $descriptor->getName();
+            if(!$descriptor->isVirtual()) {
+                $fieldName = $descriptor->getName();
 
-            if($entity->getValue($fieldName) !== null) {
-                $value = $entity->getValue($fieldName);
-                $fields[] = $fieldName;
-                $placeholders[] = ':'.$fieldName;
-                $values[':'.$fieldName] = $value;
+                if($entity->getValue($fieldName) !== null) {
+                    $value = $entity->getValue($fieldName);
+                    $fields[] = $fieldName;
+                    $placeholders[] = ':'.$fieldName;
+                    $values[':'.$fieldName] = $value;
+                }
             }
         }
 
@@ -478,8 +479,9 @@ class Repository extends \Phi\Model\Repository
 
         $needUpdate = false;
         foreach ($descriptors as $descriptor) {
+
             $fieldName = $descriptor->getName();
-            if($entity->isFieldUpdated($fieldName)) {
+            if($entity->isFieldUpdated($fieldName) && !$descriptor->isVirtual()) {
                 $needUpdate = true;
                 $value = $entity->getValue($fieldName);
                 $fields[] = $fieldName.' = :'.$fieldName;
@@ -498,6 +500,7 @@ class Repository extends \Phi\Model\Repository
                 WHERE
                     ".$entity->getPrimaryKeyFieldName()." = :id
             ";
+
 
             $this->query($query, $values);
         }
